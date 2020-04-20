@@ -80,13 +80,30 @@ Base URLs:
 {{?}}
 ```
 
-{{ var enums = []; }}
+{{ var enums = {}; }}
 {{ var blocks = data.utils.schemaToArray(origSchema,-1,{trim:true,join:true},data); }}
 {{ for (var block of blocks) {
      for (var p of block.rows) {
+        var restrictions = [];
+        if ("minimum" in p.schema) {
+            restrictions.push("<li>Minimum: " + p.schema.minimum + "</li>");
+        }
+        if ("maximum" in p.schema) {
+            restrictions.push("<li>Maximum: " + p.schema.maximum + "</li>");
+        }
+        if (restrictions.length > 0) {
+            p.restrictions = "<ul style=\"white-space: nowrap; padding-inline-start: 0;margin-block-start: 0em;\">";
+            for (var k in restrictions) {
+                p.restrictions += restrictions[k];
+            }
+            p.restrictions += "</ul>";
+        }
        if (p.schema && p.schema.enum) {
          for (var e of p.schema.enum) {
-           enums.push({name:p.name,value:e});
+           if (!(p.name in enums)) {
+             enums[p.name] = []
+           }
+           enums[p.name].push(e);
          }
        }
      }
@@ -107,22 +124,28 @@ Base URLs:
 
 {{? block.rows.length}}|Name|Type|Required|Restrictions|Description|
 |---|---|---|---|---|{{?}}
-{{~ block.rows :p}}|{{=p.displayName}}|{{=p.safeType}}|{{=p.required}}|{{=p.restrictions||'none'}}|{{=p.description||'none'}}|
+{{~ block.rows :p}}|{{=p.displayName}}|{{=p.safeType}}|{{=p.required}}|{{=p.restrictions||'none'}}|{{
+   if (p.schema['$ref'] == undefined) {
+       }}{{=data.utils.join(p.description||'none')}}{{
+   } else {
+       }}{{='none'}}{{
+   }
+}}|
 {{~}}
 {{~}}
 {{? (blocks[0].rows.length === 0) && (blocks.length === 1) }}
 *None*
 {{?}}
 
-{{? enums.length > 0 }}
+{{? Object.entries(enums).length > 0 }}
 {{= data.tags.section }}
 
 #### Enumerated Values
 
-|Property|Value|
+|Enum|Values|
 |---|---|
-{{~ enums :e}}|{{=e.name}}|{{=data.utils.toPrimitive(e.value)}}|
-{{~}}
+{{ for (var e in enums) { }}|{{=e}}|<ul>{{~enums[e] :val}}<li>{{=val}}</li>{{~}}</ul>|
+{{ } }}
 
 {{= data.tags.endSection }}
 {{?}}

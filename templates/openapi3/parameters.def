@@ -1,16 +1,75 @@
 {{= data.tags.section }}
-<h3 id="{{=data.operationUniqueSlug}}-parameters">Parameters</h3>
+{{ for (var p of data.parameters) {
+    var restrictions = [];
+    if ("pattern" in p.schema) {
+        let pattern = p.schema.pattern
+             .replace(/&/g, "&amp;")
+             .replace(/</g, "&lt;")
+             .replace(/>/g, "&gt;")
+             .replace(/"/g, "&quot;")
+             .replace(/'/g, "&#039;");
+        restrictions.push("<li>Regex: <code>" + pattern + "</code></li>");
+    }
+    if ("minimum" in p.schema) {
+        restrictions.push("<li>Minimum: " + p.schema.minimum + "</li>");
+    }
+    if ("maximum" in p.schema) {
+        restrictions.push("<li>Maximum: " + p.schema.maximum + "</li>");
+    }
+    if (restrictions.length > 0) {
+        p.restrictions = "<ul style=\" padding-inline-start: 0;margin-block-start: 0em;\">";
+        for (var k in restrictions) {
+            p.restrictions += restrictions[k];
+        }
+        p.restrictions += "</ul>";
+    }
+   if (p.schema && p.schema.enum) {
+     for (var e of p.schema.enum) {
+       if (!(p.name in enums)) {
+         enums[p.name] = []
+       }
+       enums[p.name].push(e);
+     }
+   }
+}
+}}
 
-|Name|In|Type|Required|Description|
+
+{{? data.hasBodyParam == true}}
+<h3 id="{{=data.operationUniqueSlug}}-body">Body Parameters</h3>
+
+{{? data.body_param}}
+Model: {{=data.body_param.safeType}}
+{{?}}
+|Name|Type|Required|Restrictions|Description|
 |---|---|---|---|---|
-{{~ data.parameters :p}}|{{=p.name}}|{{=p.in}}|{{=p.safeType}}|{{=p.required}}|{{=p.shortDesc || 'none'}}|
-{{~}}
+{{~ data.parameters :p}}{{?p.in == "body" && p.name != "body"}}|<span style="white-space: nowrap;">{{=p.name}}</span>|{{=p.schema.safeType}}|{{=p.required}}|{{=p.restrictions||'none'}}|{{
+    if (p.schema.type != "$ref") {
+        }}{{=data.utils.join(p.description||'none')}}{{
+    } else {
+        }} {{=p.shortDesc}}{{
+    }
+}}|
+{{?}}{{~}}
 
-{{? data.longDescs }}
-#### Detailed descriptions
-{{~ data.parameters :p}}{{? p.shortDesc !== p.description}}
-**{{=p.name}}**: {{=p.description}}{{?}}
-{{~}}
+{{?}}
+
+{{? data.hasQueryParam == true}}
+<h3 id="{{=data.operationUniqueSlug}}-body">Query Parameters</h3>
+
+|Name|Type|Required|Restrictions|Description|
+|---|---|---|---|---|
+{{~ data.parameters :p}}{{?p.in == "query"}}|<span style="white-space: nowrap;">{{=p.name}}</span>|{{=p.schema.safeType}}|{{=p.required}}|{{=p.restrictions||'none'}}|{{=data.utils.join(p.description||'none')}}|
+{{?}}{{~}}
+{{?}}
+
+{{? data.hasPathParam == true}}
+<h3 id="{{=data.operationUniqueSlug}}-body">Path Parameters</h3>
+
+|Name|Type|Required|Restrictions|Description|
+|---|---|---|---|---|
+{{~ data.parameters :p}}{{?p.in == "path"}}|<span style="white-space: nowrap;">{{=p.name}}</span>|{{=p.schema.safeType}}|{{=p.required}}|{{=p.restrictions||'none'}}|{{=data.utils.join(p.description||'none')}}|
+{{?}}{{~}}
 {{?}}
 
 {{~ data.parameters :p}}
@@ -32,9 +91,10 @@
 {{? data.enums && data.enums.length }}
 #### Enumerated Values
 
-|Parameter|Value|
+|Enum|Values|
 |---|---|
-{{~ data.enums :e}}|{{=e.name}}|{{=data.utils.toPrimitive(e.value)}}|
-{{~}}
+{{ for (var e in enums) { }}|{{=e}}|<ul>{{~enums[e] :val}}<li>{{=val}}</li>{{~}}</ul>|
+{{ } }}
+
 {{?}}
 {{= data.tags.endSection }}

@@ -1,6 +1,6 @@
 {{= data.tags.section }}
 
-# Authentication
+# Authentication Methods
 
 {{ for (var s in data.api.components.securitySchemes) { }}
 
