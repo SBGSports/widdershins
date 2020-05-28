@@ -1,6 +1,7 @@
 {{= data.tags.section }}
 {{ for (var p of data.parameters) {
     var restrictions = [];
+    var enums = {};
     if ("pattern" in p.schema) {
         let pattern = p.schema.pattern
              .replace(/&/g, "&amp;")
@@ -43,7 +44,7 @@ Model: {{=data.body_param.safeType}}
 {{?}}
 |Name|Type|Required|Restrictions|Description|
 |---|---|---|---|---|
-{{~ data.parameters :p}}{{?p.in == "body" && p.name != "body"}}|<span style="white-space: nowrap;">{{=p.name}}</span>|{{=p.schema.safeType}}|{{=p.required}}|{{=p.restrictions||'none'}}|{{
+{{~ data.parameters :p}}{{?p.in == "body" && p.name != "body" && p.name != "» **additionalProperties**" }}|<span style="white-space: nowrap;">{{=p.name}}</span>|{{=p.schema.type}}|{{=p.required}}|{{=p.restrictions||'none'}}|{{
     if (p.schema.type != "$ref") {
         }}{{=data.utils.join(p.description||'none')}}{{
     } else {
@@ -59,7 +60,7 @@ Model: {{=data.body_param.safeType}}
 
 |Name|Type|Required|Restrictions|Description|
 |---|---|---|---|---|
-{{~ data.parameters :p}}{{?p.in == "query"}}|<span style="white-space: nowrap;">{{=p.name}}</span>|{{=p.schema.safeType}}|{{=p.required}}|{{=p.restrictions||'none'}}|{{=data.utils.join(p.description||'none')}}|
+{{~ data.parameters :p}}{{?p.in == "query"}}|<span style="white-space: nowrap;">{{=p.name}}</span>|{{=p.schema.type}}|{{=p.required}}|{{=p.restrictions||'none'}}|{{=data.utils.join(p.description||'none')}}|
 {{?}}{{~}}
 {{?}}
 
@@ -68,7 +69,7 @@ Model: {{=data.body_param.safeType}}
 
 |Name|Type|Required|Restrictions|Description|
 |---|---|---|---|---|
-{{~ data.parameters :p}}{{?p.in == "path"}}|<span style="white-space: nowrap;">{{=p.name}}</span>|{{=p.schema.safeType}}|{{=p.required}}|{{=p.restrictions||'none'}}|{{=data.utils.join(p.description||'none')}}|
+{{~ data.parameters :p}}{{?p.in == "path"}}|<span style="white-space: nowrap;">{{=p.name}}</span>|{{=p.schema.type}}|{{=p.required}}|{{=p.restrictions||'none'}}|{{=data.utils.join(p.description||'none')}}|
 {{?}}{{~}}
 {{?}}
 
@@ -88,7 +89,9 @@ Model: {{=data.body_param.safeType}}
 
 {{~}}
 
-{{? data.enums && data.enums.length }}
+{{? Object.entries(enums).length > 0 }}
+{{= data.tags.section }}
+
 #### Enumerated Values
 
 |Enum|Values|
@@ -96,5 +99,6 @@ Model: {{=data.body_param.safeType}}
 {{ for (var e in enums) { }}|{{=e}}|<ul>{{~enums[e] :val}}<li>{{=val}}</li>{{~}}</ul>|
 {{ } }}
 
+{{= data.tags.endSection }}
 {{?}}
 {{= data.tags.endSection }}

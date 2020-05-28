@@ -124,14 +124,14 @@ Base URLs:
 
 {{? block.rows.length}}|Name|Type|Required|Restrictions|Description|
 |---|---|---|---|---|{{?}}
-{{~ block.rows :p}}|{{=p.displayName}}|{{=p.safeType}}|{{=p.required}}|{{=p.restrictions||'none'}}|{{
+{{~ block.rows :p}}{{? p.displayName != "» **additionalProperties**" }}|{{=p.displayName}}|{{=p.safeType}}|{{=p.required}}|{{=p.restrictions||'none'}}|{{
    if (p.schema['$ref'] == undefined) {
        }}{{=data.utils.join(p.description||'none')}}{{
    } else {
        }}{{='none'}}{{
    }
 }}|
-{{~}}
+{{?}}{{~}}
 {{~}}
 {{? (blocks[0].rows.length === 0) && (blocks.length === 1) }}
 *None*
